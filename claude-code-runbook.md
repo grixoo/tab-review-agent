@@ -14,7 +14,7 @@ Two repos:
 
 | Repo | Contains | ADR |
 |---|---|---|
-| **`azure-terraform-lab`** (existing) | Azure control plane — one new workload directory | ADR-0008 |
+| **`azure-terraform-lab`** (existing) | Azure control plane — `experiments/tab-review-agent/` (Terraform) + `reference-architectures/tab-review-agent/` (docs) | ADR-0008 |
 | **`tab-review-agent`** (new) | Data plane — agent, toolbox, knowledge, prompts, evals | ADR-0008 |
 
 The seam between them is a **Key Vault outputs contract**. Terraform writes; the agent repo's
@@ -45,9 +45,9 @@ claude mcp add --transport http microsoft-learn https://learn.microsoft.com/api/
 Verify with `/mcp`. You should see `microsoft_docs_search`, `microsoft_docs_fetch` and
 `microsoft_code_sample_search`.
 
-### 0.2 Seed the design context into both repos
+### 0.2 Seed the design context into both repos — done
 
-Copy into **each** repo (the TF repo copy goes in the workload directory):
+This repo (`tab-review-agent`) keeps its copy at repo root plus `docs/adr/`:
 
 ```
 docs/architecture/infrastructure-architecture-review-agent-v1.md
@@ -55,12 +55,16 @@ docs/architecture/diagrams/v1-architecture.html
 docs/adr/ADR-0001..ADR-0011
 ```
 
-Duplication is deliberate. Each repo must be independently comprehensible to an agent that
-cannot see the other one.
+`azure-terraform-lab` has no `workloads/` convention, so its copy lives under
+`reference-architectures/tab-review-agent/` instead (documentation-only, per that repo's
+existing `reference-architectures/` convention) — different file layout, same content.
+Duplication is deliberate either way. Each repo must be independently comprehensible to an
+agent that cannot see the other one.
 
-### 0.3 Install the CLAUDE.md files
+### 0.3 Install the CLAUDE.md files — done
 
-- `CLAUDE.tf-repo.md` → `<tf-repo>/workloads/tab-review-agent/CLAUDE.md`
+- `CLAUDE.tf-repo.md` → `<tf-repo>/experiments/tab-review-agent/CLAUDE.md` (that repo's
+  deployable-root-config location, not `workloads/`)
 - `CLAUDE.agent-repo.md` → `tab-review-agent/CLAUDE.md`
 
 Do **not** overwrite your existing root CLAUDE.md in the Terraform repo. A directory-scoped
@@ -114,34 +118,36 @@ as a hard gate once Step 6 exists.
 pointing a coding agent at an existing IaC repo is that it writes new modules duplicating ones
 you already have.
 
-Open Claude Code in the Terraform repo, enter **plan mode** (`Shift+Tab` twice), and ask:
+### 1.1 Survey — done
 
-> Survey this repository. I need to add a new workload — an Azure Foundry setup in UK South,
-> inside our existing personal lab subscription, for the TAB Architecture Review Agent lab
-> exercise (see `docs/architecture/` and `docs/adr/`).
->
-> Do not write any code yet. Produce an inventory:
-> 1. Which existing modules can I reuse, and what are their exact interfaces? Look for naming,
->    tagging, diagnostic settings, Log Analytics, Key Vault, storage, Cosmos DB, networking.
-> 2. What conventions does this repo enforce — naming, tagging, folder layout, state, provider
->    versions, CI?
-> 3. What is genuinely missing for a Foundry account, project, BYO connections and agent
->    capability host?
-> 4. Where would a new workload directory conventionally live?
+Findings, recorded in `azure-terraform-lab`'s copy of this runbook:
 
-Read the inventory yourself before continuing. This is the step that determines whether the
-result looks like your repo or like a stranger's.
+1. **Reusable as-is:** `core/tags`, `core/resource-group`, `log-analytics-workspace`,
+   `diagnostic-settings`, `key-vault`, `storage-account`, `managed-identity`,
+   `ai-foundry-account`, `ai-model-deployment`.
+2. **Conventions:** five-file module shape, `azurerm >= 5.0, < 6.0`, one state key per
+   experiment, `patterns/` (reusable, no backend) vs `experiments/` (deployable, own state
+   key, CI dispatcher workflow that auto-sets `TF_VAR_expires_on = today + 2 days` on every
+   run — a tracking tag, not an enforced deletion).
+3. **Genuinely missing:** Cosmos DB module, Azure AI Search module, BYO project
+   connections, agent capability host. `ai-foundry-project` was missing too — **now built**.
+4. **Where the workload lives:** `experiments/tab-review-agent/` (Terraform) +
+   `reference-architectures/tab-review-agent/` (docs) — not `workloads/`, which doesn't
+   exist as a convention in that repo.
 
 ### 1.2 Design the composition
 
 Still in plan mode, same session:
 
-> Using only the modules you inventoried, plus `Azure/terraform-azurerm-avm-ptn-aiml-ai-foundry`
-> for the Foundry-specific gap in BYOR mode, design the workload composition.
+> Using only the modules you inventoried, plus `ai-foundry-project` (now built) and either
+> new small in-house modules or `Azure/terraform-azurerm-avm-ptn-aiml-ai-foundry` in BYOR
+> mode for whatever's still missing (Cosmos DB, AI Search, BYO connections, capability
+> host) — prefer the small in-house module unless the AVM gap is too large — design the
+> workload composition.
 >
-> Requirements are in `CLAUDE.md` in this directory. Pay particular attention to the six
-> non-obvious requirements — especially `knowledgeRetrieval` billing consent and capability
-> host ordering.
+> Requirements are in `experiments/tab-review-agent/CLAUDE.md`. Pay particular attention to
+> the six non-obvious requirements — especially `knowledgeRetrieval` billing consent and
+> capability host ordering.
 >
 > Use the Microsoft Learn MCP server to verify current resource schemas and the
 > `knowledgeRetrieval` property. Do not rely on training data for Foundry resource shapes.
@@ -151,26 +157,29 @@ Still in plan mode, same session:
 
 Review, correct, then accept the plan.
 
-### 1.3 Implement
+### 1.3 Implement — `ai-foundry-project` module done, rest pending
 
-Exit plan mode and let it write. Keep permissions on — this touches subscription-scoped role
-assignments, so do **not** use `--dangerously-skip-permissions` here.
+`modules/ai-foundry-project/` now exists in `azure-terraform-lab` — five-file shape, wraps
+`azurerm_cognitive_account_project`.
 
-Expected shape:
+Exit plan mode and let it write the rest. Keep permissions on — this touches
+subscription-scoped role assignments, so do **not** use `--dangerously-skip-permissions`
+here.
+
+Expected shape, following `azure-terraform-lab`'s experiment convention:
 
 ```
-workloads/tab-review-agent/
-  CLAUDE.md
+experiments/tab-review-agent/
+  CLAUDE.md                 # done
   README.md
-  main.tf                 # composition
-  foundry.tf              # AVM pattern module, BYOR
-  data-services.tf        # Storage, Cosmos DB, AI Search via in-house modules
-  observability.tf        # Log Analytics, App Insights, diagnostic settings
-  identity.tf             # UAMI + RBAC
-  outputs-contract.tf     # writes the Key Vault secrets in the outputs contract
+  backend.tf                 # empty azurerm backend block, filled by CI -backend-config
+  providers.tf
+  main.tf                    # composition — may delegate to a new patterns/ blueprint
+  outputs.tf                 # includes the Key Vault outputs-contract secrets
   variables.tf
-  terraform.tfvars.example
-  envs/poc.tfvars
+  terraform.tfvars
+  experiment.yaml             # name, state_key, workflow, modules list, expiry policy
+  test-plan.md
 ```
 
 ### 1.4 Verify before applying
@@ -193,10 +202,14 @@ appears as a plaintext output.
 
 ### 1.5 CI
 
-> Add a GitHub Actions workflow for this workload: OIDC federated credentials, no secrets,
-> `fmt` + `validate` + `plan` on PR against paths under `workloads/tab-review-agent/`,
-> `apply` on merge to main with an environment protection rule. Follow the existing workflow
-> conventions in this repo — do not invent a new pattern.
+> Add a GitHub Actions workflow for this experiment, following `azure-terraform-lab`'s
+> existing pattern exactly: a thin `terraform-tab-review-agent.yml` dispatcher
+> (`workflow_dispatch`, `plan|apply|destroy` choice input) that calls the shared reusable
+> `terraform-experiment.yml` with `experiment: tab-review-agent`. OIDC federated
+> credentials, no secrets. Not a PR-triggered plan / merge-triggered apply flow — that repo's
+> experiments are all manually dispatched, and the reusable workflow already sets
+> `TF_VAR_expires_on` to today + 2 days on every run. Decide explicitly whether that's
+> acceptable for a workload meant to persist across several build phases.
 
 ### 1.6 Before you apply, unblock the model
 
