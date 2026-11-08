@@ -1,6 +1,16 @@
-# CLAUDE.md — TAB Infrastructure Architecture Review Agent
+# AGENTS.md — TAB Infrastructure Architecture Review Agent
 
-> Place at the **root** of the agent repository.
+Applies to this repository and its subdirectories.
+
+## Current implementation status
+
+This checkout contains design documents and ADRs only. The application layout below
+is a target, not an implemented system. There is no dependency manifest, build, CI,
+or test suite yet. Do not claim those checks ran. Scaffolding is a separate coding task.
+Use the existing isolated checkout; do not create worktrees unless requested.
+
+The read-only rules below govern the deployed review agent. They do not prohibit
+a coding assistant from editing this repository within the user’s requested scope.
 
 ## Lab context
 
@@ -89,11 +99,11 @@ moves fast and training data is stale.
 - Agents cap at **1,000 valid revisions**; the version-cap error is terminal, not transient.
   Rotate old versions in the deploy pipeline.
 
-## Repository layout
+## Planned application layout
 
 ```
 docs/
-  architecture/          # v1 design doc + diagrams
+  architecture/          # v1 design document; diagrams not yet present
   adr/                   # ADR-0001..0011
 agent/
   instructions/          # system prompt, review rubric, domain checklist  ← the product
@@ -130,3 +140,14 @@ runbook (ADR-0008, §7).
 - Prompt changes require an evaluation run before merge
 - Golden-set submissions must be anonymised before they enter this repo
 - No secrets in the repo. Landing zone coordinates come from Key Vault at deploy time
+
+## Verification for repository changes
+
+- Read [the implementation runbook](docs/implementation-runbook.md) before implementation.
+- Use [the ADR review checklist](docs/adr/review-checklist.md) before proposing a PR.
+- For documentation changes, validate relative links and run `git diff --check`.
+- Once Python manifests and tests exist, use the pinned toolchain and lockfile; run
+  the relevant lint, sanitisation, and evaluation checks for the changed behavior.
+- Verify changing Foundry APIs against current official Microsoft Learn documentation.
+  If its MCP server is unavailable, use official web documentation and report the limitation.
+- See [open review findings](docs/repository-review.md) for unresolved design discrepancies.
