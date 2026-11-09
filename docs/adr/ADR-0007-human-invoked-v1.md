@@ -1,6 +1,7 @@
 # ADR-0007. Human-invoked reviews in v1; defer automatic submission detection
 
-- **Status:** Proposed
+- **Status:** Accepted
+- **Accepted:** 2026-11-09 — confirmed by the lab owner
 - **Date:** 2026-08-17
 - **Deciders:** Infrastructure Architect / Technology Architecture Board
 - **Phase:** 1 — Architecture design

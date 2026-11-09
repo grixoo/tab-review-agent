@@ -1,6 +1,7 @@
 # ADR-0005. Encode source authority as separate knowledge sources, using GA features only
 
-- **Status:** Proposed
+- **Status:** Accepted
+- **Accepted:** 2026-11-09 — confirmed by the lab owner
 - **Date:** 2026-08-17
 - **Deciders:** Infrastructure Architect / Technology Architecture Board
 - **Phase:** 1 — Architecture design

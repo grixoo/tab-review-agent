@@ -100,12 +100,14 @@ Still in plan mode, same session:
 
 Review, correct, then accept the plan.
 
-### 1.3 Implement — `ai-foundry-project` module done, rest pending
+### 1.3 Implement — control-plane source now present; deployment unverified
 
 `modules/ai-foundry-project/` now exists in `azure-terraform-lab` — five-file shape, wraps
 `azurerm_cognitive_account_project`.
 
-Exit plan mode and let it write the rest. Keep approval controls enabled: this touches subscription-scoped role assignments.
+The 2026-11-09 source inspection found the workload composition and supporting
+modules present. See [the infrastructure inspection](infrastructure-contract.md).
+Do not regenerate that implementation; review and validate the existing code. Keep approval controls enabled: this touches subscription-scoped role assignments.
 
 Expected shape, following `azure-terraform-lab`'s experiment convention:
 
@@ -195,7 +197,7 @@ Then wire the seam:
 
 > Implement `deploy/config.py`. It reads the landing zone coordinates from Key Vault using
 > `DefaultAzureCredential` — the exact secret names must first be confirmed from the Terraform repository’s outputs
-> contract; this checkout does not yet define them. Fail fast with a clear message naming the missing secret. No fallbacks to
+> contract, now recorded in [the infrastructure contract](infrastructure-contract.md). Fail fast with a clear message naming the missing secret. No fallbacks to
 > environment variables for endpoints; the contract is the contract.
 
 ---

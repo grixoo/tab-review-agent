@@ -1,34 +1,29 @@
-# Repository review and tidy-up plan
+# Repository review and next steps
 
 ## Completed
 
-- Adopt root `AGENTS.md` so Codex discovers repository instructions.
-- Add a README describing the actual documentation-only status and reading order.
-- Move the architecture document into `docs/architecture/` as existing references expect.
-- Move the implementation runbook into `docs/` and replace Claude-specific setup,
-  hooks, keyboard shortcuts, and slash commands with Codex-compatible guidance.
-- Replace the hidden Claude command with a portable ADR review checklist.
-- Preserve the numbered ADRs and architecture decisions.
+- Adopted root `AGENTS.md`, README, documented layout, Codex runbook and ADR checklist.
+- Lab owner confirmed two repositories on 2026-11-09: Terraform and Foundry
+  infrastructure in `azure-terraform-lab`; agent details in `tab-review-agent`.
+  ADR-0008 now records this separation and the existing in-house module approach.
+- Recorded acceptance of the eleven ADRs, retaining their original dates.
+- Inspected the Terraform source and documented all nine Key Vault contract entries
+  in [the infrastructure contract](infrastructure-contract.md).
+- Corrected ADR-0011's claim that only one recent model has full tool coverage;
+  retained `gpt-5.5` as selected and `gpt-4.1` as fallback.
 
-## Resolve before implementation
+## Remaining work
 
-1. ADR-0008 says “one repository” and co-located definitions, while the runbook and
-   agent instructions specify separate control-plane and data-plane repositories.
-   Reconcile this explicitly through the ADR process before implementing the seam.
-2. All eleven ADRs are marked Proposed, while agent instructions call the decisions
-   settled. Confirm their intended acceptance status; no status was changed by cleanup.
-3. The runbook references a Key Vault outputs contract, but exact secret names are
-   absent here. Inspect the Terraform repository and document that contract before
-   implementing `deploy/config.py`.
-4. ADR-0011 lists `gpt-5.4` with full tool support but calls `gpt-5.5` the only recent
-   model supporting the full set. Recheck official availability and clarify the rationale.
-5. Terraform progress reported by the runbook is unverified in this checkout.
-   Inspect that repository before treating those steps as done.
+1. Verify the actual infrastructure deployment. Source inspection establishes that
+   the workload exists in Git, not that it has been applied successfully.
+2. Establish the deploy identity, OIDC trust, Key Vault URI bootstrap input and
+   permissions. Confirm separation between project contributor roles and the
+   review agent's reader roles before runtime integration.
+3. Revalidate current UK South model/tool support and subscription quota before
+   deployment. The Terraform configuration has been updated to select `gpt-5.5`;
+   `gpt-4.1` remains the explicit fallback, not an automatic substitution.
+4. Scaffold the Python project, pinned dependencies, lint, tests and CI (runbook
+   Step 3), then prove the minimal integration before adding retrieval/evaluation.
 
-## Next coding task
-
-Scaffold the planned Python package, dependency manifest and lockfile, development
-checks, and CI as described in runbook Step 3. Then implement and test the minimal
-integration before expanding retrieval and evaluation. Verify current Foundry APIs
-and required authentication first. The architecture diagram referenced in the old
-runbook has not been supplied and remains optional documentation work.
+The architecture diagram remains optional documentation work. No application
+build or test suite exists in this repository yet.

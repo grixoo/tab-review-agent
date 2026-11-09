@@ -1,6 +1,7 @@
 # ADR-0002. Attach all capabilities through a single Foundry Toolbox
 
-- **Status:** Proposed
+- **Status:** Accepted
+- **Accepted:** 2026-11-09 — confirmed by the lab owner
 - **Date:** 2026-08-17
 - **Deciders:** Infrastructure Architect / Technology Architecture Board
 - **Phase:** 1 — Architecture design

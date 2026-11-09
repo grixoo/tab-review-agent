@@ -1,6 +1,7 @@
 # ADR-0006. Use the Foundry web search tool for external research, with query sanitisation
 
-- **Status:** Proposed
+- **Status:** Accepted
+- **Accepted:** 2026-11-09 — confirmed by the lab owner
 - **Date:** 2026-08-17
 - **Deciders:** Infrastructure Architect / Technology Architecture Board
 - **Phase:** 1 — Architecture design

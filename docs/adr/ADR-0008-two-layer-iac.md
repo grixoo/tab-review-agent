@@ -1,6 +1,7 @@
 # ADR-0008. Two-layer IaC: Terraform for the control plane, azd/SDK for the data plane
 
-- **Status:** Proposed
+- **Status:** Accepted
+- **Accepted:** 2026-11-09 — confirmed by the lab owner
 - **Date:** 2026-08-17
 - **Deciders:** Infrastructure Architect / Technology Architecture Board
 - **Phase:** 1 — Architecture design
@@ -13,11 +14,16 @@ Agent definitions, toolboxes, knowledge bases and knowledge sources are **data-p
 
 ## Decision
 
-Two layers, two pipelines, one repository.
+Two layers, two pipelines, two repositories.
 
-**Layer 1 — control plane (Terraform):** Foundry account and project, model deployment, Azure AI Search (with the `knowledgeRetrieval` billing consent property set), Storage, Cosmos DB, Key Vault, Application Insights, Log Analytics, RBAC, diagnostic settings, and — from Phase 7 — VNet, subnets, private endpoints and private DNS. Uses the AVM pattern module in **BYOR** mode, which its documentation states is the only supported path for production AI landing zones.
+- **`grixoo/azure-terraform-lab`** owns the infrastructure and Foundry control-plane deployment under `experiments/tab-review-agent/`.
+- **`grixoo/tab-review-agent`** owns agent details: instructions, definitions, toolbox, connections, knowledge sources, sanitisation, evaluations, and data-plane deployment.
 
-**Layer 2 — data plane (declarative definitions + `azd`/SDK):** agent versions, toolbox versions, knowledge base and knowledge source definitions, and project connections, held as version-controlled YAML/JSON in the same repository and applied by a deploy step.
+Terraform publishes the [Key Vault outputs contract](../infrastructure-contract.md); the agent repository reads it without accessing Terraform state. This separation was confirmed by the lab owner on 2026-11-09, replacing the original single-repository wording.
+
+**Layer 1 — control plane (Terraform):** Foundry account and project, model deployment, Azure AI Search (with the `knowledgeRetrieval` billing consent property set), Storage, Cosmos DB, Key Vault, Application Insights, Log Analytics, RBAC, diagnostic settings, and — from Phase 7 — VNet, subnets, private endpoints and private DNS. Uses the existing in-house modules for the personal lab, with BYO backing resources. The AVM pattern in **BYOR** mode remains a reference for gaps and production landing-zone guidance, not a requirement to replace existing lab modules.
+
+**Layer 2 — data plane (declarative definitions + `azd`/SDK):** agent versions, toolbox versions, knowledge base and knowledge source definitions, and project connections, held as version-controlled YAML/JSON in the separate `tab-review-agent` repository and applied by a deploy step.
 
 Both layers run from GitHub Actions with OIDC federated credentials. No service principal secrets.
 

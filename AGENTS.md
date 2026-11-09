@@ -30,7 +30,7 @@ project connections, prompts, and the evaluation harness.
 
 Azure infrastructure lives in a separate Terraform repository. This repo assumes the
 landing zone already exists and reads its coordinates from Key Vault at deploy time.
-See ADR-0008.
+See ADR-0008 and [the infrastructure contract](docs/infrastructure-contract.md).
 
 ## What the agent does
 
