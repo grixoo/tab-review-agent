@@ -1,6 +1,7 @@
 # ADR-0011. Deploy `gpt-5.5` in UK South, with `gpt-4.1` as fallback
 
-- **Status:** Proposed
+- **Status:** Accepted
+- **Accepted:** 2026-11-09 — confirmed by the lab owner
 - **Date:** 2026-08-17
 - **Deciders:** Infrastructure Architect / Technology Architecture Board
 - **Phase:** 1 — Architecture design (added after region confirmation)
@@ -44,7 +45,7 @@ Treat the model deployment name as a **Terraform variable**, and the model refer
 
 ## Rationale
 
-- `gpt-5.5` is the only recent model that supports the **complete** tool set this design needs, including Grounding with Bing Custom Search.
+- `gpt-5.5` is the selected model among the candidates recorded above with the **complete** required tool set, including Grounding with Bing Custom Search. The table also lists `gpt-5.4` as viable; full tool coverage alone does not uniquely select `gpt-5.5`. These recorded availability claims must be revalidated against current official documentation and subscription quota before deployment.
 - Bing Custom Search is not used in v1 (ADR-0006 selected unrestricted web search), but it is the documented one-config-change fallback if TAB later rejects the data-boundary risk. **Choosing `gpt-5.1` or `gpt-5.2` would silently delete that fallback** — the mitigation would still be written in the ADR but would no longer be executable without also changing the model, which changes review behaviour at the same time. Preserving a mitigation you might need is worth more than a marginal model preference.
 - `gpt-4.1` supports the identical tool set and is broadly available without registration gating, making it a genuine like-for-like fallback rather than a degraded one.
 - Reasoning quality matters here: the agent must hold a whole design in context and assess it across sixteen coupled domains (ADR-0001). This is not a task for a mini or nano tier.
